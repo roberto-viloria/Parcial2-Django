@@ -1,13 +1,29 @@
 
+import os
 from pathlib import Path
+
+from django.core.management.utils import get_random_secret_key
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-SECRET_KEY = 'django-insecure-parcial2-clave-local-desarrollo-2026'
+SECRET_KEY_FILE = BASE_DIR / ".django_secret"
+SECRET_KEY = os.environ.get("DJANGO_SECRET_KEY")
+if not SECRET_KEY:
+    try:
+        SECRET_KEY = SECRET_KEY_FILE.read_text(encoding="utf-8").strip()
+    except FileNotFoundError:
+        SECRET_KEY = ""
+    if not SECRET_KEY:
+        SECRET_KEY = get_random_secret_key()
+        SECRET_KEY_FILE.write_text(SECRET_KEY, encoding="utf-8")
 
-DEBUG = True
+DEBUG = os.environ.get("DJANGO_DEBUG", "False").lower() in {"1", "true", "yes", "on"}
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = [
+    host.strip()
+    for host in os.environ.get("DJANGO_ALLOWED_HOSTS", "localhost,127.0.0.1").split(",")
+    if host.strip()
+]
 
 INSTALLED_APPS = [
     'django.contrib.admin',
